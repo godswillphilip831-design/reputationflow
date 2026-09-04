@@ -22,6 +22,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [noBusiness, setNoBusiness] = useState(false);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   useEffect(() => {
@@ -39,11 +40,15 @@ export default function SettingsPage() {
         .select("id, name, slug, google_review_url")
         .eq("user_id", user.id)
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (!active) return;
       if (businessError || !data) {
-        setError(businessError?.message || "No business found. Complete onboarding first.");
+        if (businessError) {
+          setError(businessError.message);
+        } else {
+          setNoBusiness(true);
+        }
       } else {
         setBusiness(data);
         setName(data.name);
@@ -96,6 +101,13 @@ export default function SettingsPage() {
 
           {loading ? (
             <p className="mt-8 rounded-xl border border-[#2f3336] bg-black px-4 py-3 text-sm text-[#8b949e]">Loading settings...</p>
+          ) : noBusiness ? (
+            <div className="mt-8 rounded-xl border border-[#2f3336] bg-black p-5">
+              <p className="text-sm text-[#8b949e]">No business yet. Complete onboarding first.</p>
+              <Link className="mt-4 inline-flex rounded-xl bg-[#1d9bf0] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1a8cd8]" href="/onboarding">
+                Go to onboarding
+              </Link>
+            </div>
           ) : (
             <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
               <div>
