@@ -92,6 +92,7 @@ const MOCK: FB[] = [
                                                                                                                                                     </div>
                                                                                                                                                               <div className="flex gap-4 text-sm text-[#71767b]">
                                                                                                                                                                           <span className="hidden sm:inline">{biz.name}</span>
+                                                                                                                                                                                      <Link href="/settings">Settings</Link>
                                                                                                                                                                                       <Link href="/">Log out</Link>
                                                                                                                                                                                                 </div>
                                                                                                                                                                                                         </div>
