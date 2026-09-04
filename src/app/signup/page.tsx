@@ -30,8 +30,8 @@ export default function SignupPage() {
         return;
       }
 
-      setSuccess("Account created. You can now log in.");
-      setTimeout(() => router.push("/login"), 800);
+      setSuccess("Account created. Let’s set up your business.");
+      setTimeout(() => router.push("/onboarding"), 800);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create account right now.");
     } finally {
