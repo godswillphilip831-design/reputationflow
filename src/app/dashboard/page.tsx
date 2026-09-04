@@ -34,9 +34,7 @@ const MOCK: FB[] = [
                                                                   } catch {}
                                                                     }, []);
 
-                                                                      const link = typeof window !== "undefined"
-                                                                          ? `\( {window.location.origin}/r/ \){biz.slug}`
-                                                                              : `https://reputationflow-zrpt.vercel.app/r/${biz.slug}`;
+                                                                        const link = (typeof window !== "undefined" ? window.location.origin : "https://reputationflow-zrpt.vercel.app") + "/r/" + biz.slug;
 
                                                                                 const qr = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}&bgcolor=000000&color=e7e9ea`;
 
