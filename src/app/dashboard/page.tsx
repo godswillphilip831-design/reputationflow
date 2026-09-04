@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { generateReply } from "@/lib/ai-reply";
+import { supabase } from "@/lib/supabase";
 
 const DEFAULT = { name: "Your Business", slug: "demo" };
 
@@ -23,16 +24,56 @@ const MOCK: FB[] = [
                   const [text, setText] = useState("");
                     const [reply, setReply] = useState("");
                       const [rCopied, setRCopied] = useState(false);
+                        const [loading, setLoading] = useState(true);
+                          const [loadError, setLoadError] = useState("");
 
                         useEffect(() => {
-                            try {
-                                  const s = localStorage.getItem("rf_business");
-                                        if (s) {
-                                                const p = JSON.parse(s);
-                                                        setBiz({ name: p.name || DEFAULT.name, slug: p.slug || DEFAULT.slug });
-                                                              }
-                                                                  } catch {}
-                                                                    }, []);
+                                async function loadDashboard() {
+                                  try {
+                                    const { data: { user }, error: userError } = await supabase.auth.getUser();
+                                    if (userError || !user) throw new Error(userError?.message || "Unable to find your account.");
+
+                                    const { data: business, error: businessError } = await supabase
+                                      .from("businesses")
+                                      .select("id, name, slug")
+                                      .eq("user_id", user.id)
+                                      .limit(1)
+                                      .single();
+
+                                    if (businessError || !business) {
+                                      try {
+                                        const saved = localStorage.getItem("rf_business");
+                                        if (saved) {
+                                          const parsed = JSON.parse(saved);
+                                          setBiz({ name: parsed.name || DEFAULT.name, slug: parsed.slug || DEFAULT.slug });
+                                        }
+                                      } catch {}
+                                      return;
+                                    }
+
+                                    setBiz({ name: business.name, slug: business.slug });
+                                    const { data: feedback, error: feedbackError } = await supabase
+                                      .from("private_feedback")
+                                      .select("id, rating, message, customer_name, created_at")
+                                      .eq("business_id", business.id)
+                                      .order("created_at", { ascending: false });
+                                    if (feedbackError) throw new Error(feedbackError.message);
+                                    setFb((feedback || []).map((item) => ({
+                                      id: item.id,
+                                      rating: item.rating,
+                                      message: item.message || "",
+                                      name: item.customer_name,
+                                      date: new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                                      done: false,
+                                    })));
+                                  } catch (error) {
+                                    setLoadError(error instanceof Error ? error.message : "Unable to load dashboard data.");
+                                  } finally {
+                                    setLoading(false);
+                                  }
+                                }
+                                loadDashboard();
+                                                                        }, []);
 
                                                                         const link = (typeof window !== "undefined" ? window.location.origin : "https://reputationflow-zrpt.vercel.app") + "/r/" + biz.slug;
 
@@ -41,7 +82,7 @@ const MOCK: FB[] = [
                                                                                   const list = fb.filter((i) => filter === "all" || (filter === "open" ? !i.done : i.done));
                                                                                     const open = fb.filter((i) => !i.done).length;
 
-                                                                                      return (
+                                                                                        return (
                                                                                           <div className="min-h-screen bg-black text-[#e7e9ea]">
                                                                                                 <header className="sticky top-0 z-50 bg-black/80 border-b border-[#2f3336]">
                                                                                                         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -56,7 +97,9 @@ const MOCK: FB[] = [
                                                                                                                                                                                                         </div>
                                                                                                                                                                                                               </header>
 
-                                                                                                                                                                                                                    <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+                                                                                                                                                                                                                        <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+                                                                                                                                                                                                                          {loading && <p className="rounded-xl border border-[#2f3336] bg-[#16181c] px-4 py-3 text-sm text-[#8b949e]">Loading dashboard data...</p>}
+                                                                                                                                                                                                                          {loadError && <p className="rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300" role="alert">{loadError}</p>}
                                                                                                                                                                                                                             <div>
                                                                                                                                                                                                                                       <h1 className="text-2xl font-bold">Dashboard</h1>
                                                                                                                                                                                                                                                 <p className="text-[#71767b] text-sm mt-1">Smart link, private feedback & AI replies</p>

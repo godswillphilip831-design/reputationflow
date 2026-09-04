@@ -2,21 +2,52 @@
 
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-const business = {
+const fallbackBusiness = {
+  id: null,
+  slug: "demo",
   name: "Demo Plumbing Co.",
   googleReviewUrl:
     "https://www.google.com/search?q=Demo+Plumbing+Co.+reviews",
 };
 
+type Business = { id: string | null; slug: string; name: string; googleReviewUrl: string };
+
 type Step = "rating" | "redirecting" | "feedback" | "thanks";
 
 export default function ReviewFunnelPage() {
   const { slug } = useParams<{ slug: string }>();
+  const [business, setBusiness] = useState<Business>(fallbackBusiness);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [step, setStep] = useState<Step>("rating");
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
+  const [feedbackError, setFeedbackError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    async function loadBusiness() {
+      const { data, error } = await supabase
+        .from("businesses")
+        .select("id, name, google_review_url, slug")
+        .eq("slug", slug)
+        .single();
+
+      if (!active) return;
+      if (error || !data) {
+        setLoadError("Showing the demo review experience.");
+      } else {
+        setBusiness({ id: data.id, slug: data.slug, name: data.name, googleReviewUrl: data.google_review_url });
+      }
+      setLoading(false);
+    }
+    loadBusiness();
+    return () => { active = false; };
+  }, [slug]);
 
   useEffect(() => {
     if (step !== "redirecting") {
@@ -28,18 +59,36 @@ export default function ReviewFunnelPage() {
     }, 1200);
 
     return () => window.clearTimeout(redirectTimer);
-  }, [step]);
+  }, [business.googleReviewUrl, step]);
 
   function handleRating(rating: number) {
     setSelectedRating(rating);
     setStep(rating >= 4 ? "redirecting" : "feedback");
   }
 
-  function handleFeedbackSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleFeedbackSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!message.trim()) {
       return;
     }
+    setFeedbackError("");
+    setSubmitting(true);
+
+    if (business.id) {
+      const { error } = await supabase.from("private_feedback").insert({
+        business_id: business.id,
+        rating: selectedRating,
+        message: message.trim(),
+        customer_name: name.trim() || null,
+      });
+      if (error) {
+        setFeedbackError("We couldn’t send your feedback. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    setSubmitting(false);
     setStep("thanks");
   }
 
@@ -57,7 +106,14 @@ export default function ReviewFunnelPage() {
 
         <section className="flex flex-1 items-center py-12 sm:py-20">
           <div className="w-full rounded-2xl border border-[#2f3336] bg-[#16181c] p-6 shadow-2xl shadow-black/40 sm:p-10">
-            {step === "rating" && (
+            {loading && (
+              <div className="py-12 text-center">
+                <div className="mx-auto mb-5 h-8 w-8 animate-spin rounded-full border-2 border-[#2f3336] border-t-[#1d9bf0]" />
+                <p className="text-sm text-[#8b949e]">Loading your review page...</p>
+              </div>
+            )}
+
+            {!loading && step === "rating" && (
               <div className="text-center">
                 <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#1d9bf0]/10 text-2xl text-[#1d9bf0]">
                   <span aria-hidden="true">★</span>
@@ -71,6 +127,7 @@ export default function ReviewFunnelPage() {
                 <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-[#8b949e]">
                   Your feedback helps us keep delivering a better service.
                 </p>
+                {loadError && <p className="mt-4 text-xs text-[#71767b]">{loadError}</p>}
                 <div
                   aria-label="Choose a rating from 1 to 5 stars"
                   className="mt-9 flex justify-center gap-2 sm:gap-3"
@@ -91,7 +148,7 @@ export default function ReviewFunnelPage() {
               </div>
             )}
 
-            {step === "redirecting" && (
+            {!loading && step === "redirecting" && (
               <div className="py-8 text-center sm:py-12">
                 <div className="mx-auto mb-7 h-10 w-10 animate-spin rounded-full border-2 border-[#2f3336] border-t-[#1d9bf0]" />
                 <p className="mb-3 text-sm font-medium uppercase tracking-[0.18em] text-[#1d9bf0]">
@@ -106,7 +163,7 @@ export default function ReviewFunnelPage() {
               </div>
             )}
 
-            {step === "feedback" && (
+            {!loading && step === "feedback" && (
               <div>
                 <p className="mb-3 text-sm font-medium uppercase tracking-[0.18em] text-[#1d9bf0]">
                   Help us improve
@@ -144,16 +201,18 @@ export default function ReviewFunnelPage() {
                     />
                   </div>
                   <button
-                    className="w-full rounded-lg bg-[#1d9bf0] px-4 py-3 font-semibold text-white transition hover:bg-[#1a8cd8] focus:outline-none focus:ring-2 focus:ring-[#1d9bf0] focus:ring-offset-2 focus:ring-offset-[#16181c]"
+                    className="w-full rounded-lg bg-[#1d9bf0] px-4 py-3 font-semibold text-white transition hover:bg-[#1a8cd8] focus:outline-none focus:ring-2 focus:ring-[#1d9bf0] focus:ring-offset-2 focus:ring-offset-[#16181c] disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={submitting}
                     type="submit"
                   >
-                    Send private feedback
+                    {submitting ? "Sending..." : "Send private feedback"}
                   </button>
+                  {feedbackError && <p className="text-sm text-red-400" role="alert">{feedbackError}</p>}
                 </form>
               </div>
             )}
 
-            {step === "thanks" && (
+            {!loading && step === "thanks" && (
               <div className="py-8 text-center sm:py-12">
                 <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#1d9bf0]/10 text-2xl text-[#1d9bf0]">
                   <span aria-hidden="true">✓</span>

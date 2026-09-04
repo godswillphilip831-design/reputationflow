@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { supabase } from "@/lib/supabase";
 
 function createSlug(name: string) {
   return name
@@ -18,11 +19,9 @@ export default function OnboardingPage() {
   const [slug, setSlug] = useState("");
   const [googleUrl, setGoogleUrl] = useState("");
   const [urlError, setUrlError] = useState("");
-  const [origin, setOrigin] = useState("");
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   function handleBusinessSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,12 +45,36 @@ export default function OnboardingPage() {
     setStep(3);
   }
 
-  function finishOnboarding() {
-    localStorage.setItem(
-      "rf_business",
-      JSON.stringify({ name: name.trim(), slug, googleUrl }),
-    );
-    router.push("/dashboard");
+  async function finishOnboarding() {
+    setSaveError("");
+    setSaving(true);
+
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error(userError?.message || "Please log in before finishing setup.");
+      }
+
+      const { error: insertError } = await supabase.from("businesses").insert({
+        user_id: user.id,
+        name: name.trim(),
+        slug,
+        google_review_url: googleUrl,
+      });
+      if (insertError) {
+        throw new Error(insertError.message);
+      }
+
+      localStorage.setItem(
+        "rf_business",
+        JSON.stringify({ name: name.trim(), slug, googleUrl }),
+      );
+      router.push("/dashboard");
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Unable to save your business right now.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -141,8 +164,9 @@ export default function OnboardingPage() {
                 </dl>
                 <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row">
                   <button className="w-full rounded-xl border border-[#2f3336] px-4 py-3.5 text-[15px] font-semibold text-[#e7e9ea] transition hover:border-[#71767b] sm:w-1/3" onClick={() => setStep(2)} type="button">Back</button>
-                  <button className="w-full rounded-xl bg-[#1d9bf0] px-4 py-3.5 text-[15px] font-bold text-white transition hover:bg-[#1a8cd8] focus:outline-none focus:ring-2 focus:ring-[#1d9bf0] focus:ring-offset-2 focus:ring-offset-[#16181c] sm:flex-1" onClick={finishOnboarding} type="button">Finish setup</button>
+                  <button className="w-full rounded-xl bg-[#1d9bf0] px-4 py-3.5 text-[15px] font-bold text-white transition hover:bg-[#1a8cd8] focus:outline-none focus:ring-2 focus:ring-[#1d9bf0] focus:ring-offset-2 focus:ring-offset-[#16181c] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1" disabled={saving} onClick={finishOnboarding} type="button">{saving ? "Saving..." : "Finish setup"}</button>
                 </div>
+                {saveError && <p className="mt-4 text-sm text-red-400" role="alert">{saveError}</p>}
               </div>
             )}
           </div>
