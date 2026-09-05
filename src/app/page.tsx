@@ -37,8 +37,8 @@ export default function Home() {
               <a href="#how-it-works" className="hover:text-[#e7e9ea] transition">
                 How it works
               </a>
-              <a href="#features" className="hover:text-[#e7e9ea] transition">
-                Features
+              <a href="#benefits" className="hover:text-[#e7e9ea] transition">
+                Benefits
               </a>
               <a href="#pricing" className="hover:text-[#e7e9ea] transition">
                 Pricing
@@ -77,9 +77,8 @@ export default function Home() {
                 <span className="text-[#1d9bf0]">Protect your rating.</span>
               </h1>
               <p className="mt-6 text-[17px] sm:text-xl text-[#71767b] leading-relaxed max-w-xl">
-                ReputationFlow helps local service businesses collect more 5-star
-                Google reviews, keep negative feedback private, and turn happy
-                customers into marketing assets.
+                Collect more 5-star Google reviews while giving unhappy customers
+                a private path to reach you.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row items-start gap-3">
                 <Link
@@ -96,51 +95,8 @@ export default function Home() {
                 </a>
               </div>
               <p className="mt-5 text-[13px] text-[#71767b]">
-                No credit card required · Setup in under 5 minutes
+                Setup in under 5 minutes · No credit card required for your trial
               </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Problem */}
-        <section className="border-t border-[#2f3336]">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-            <div className="max-w-xl mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#e7e9ea]">
-                Your Google ranking is your lifeline
-              </h2>
-              <p className="mt-3 text-[17px] text-[#71767b] leading-relaxed">
-                When a plumber, dentist, or HVAC company drops from #2 to #6 on
-                Google Maps, the phone stops ringing.
-              </p>
-            </div>
-            <div className="grid sm:grid-cols-3 gap-4">
-              {[
-                {
-                  title: "Forgotten follow-ups",
-                  desc: "Owners mean to ask for reviews but forget after a busy day. Reviews never happen.",
-                },
-                {
-                  title: "Public bad reviews",
-                  desc: "Unhappy customers leave 1-star feedback publicly before you can fix the issue.",
-                },
-                {
-                  title: "Reviews stay unused",
-                  desc: "Great 5-star reviews sit on Google instead of becoming social posts and trust signals.",
-                },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-[#2f3336] bg-[#16181c] p-5"
-                >
-                  <h3 className="text-[17px] font-bold text-[#e7e9ea]">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-[15px] text-[#71767b] leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
-              ))}
             </div>
           </div>
         </section>
@@ -160,18 +116,18 @@ export default function Home() {
               {[
                 {
                   step: "01",
-                  title: "Share your smart link or QR",
-                  desc: "After every job, send your unique review link by text or show the QR code. Takes seconds.",
+                  title: "Share your smart link or QR after every job",
+                  desc: "Send your unique review link by text or show the QR code while the experience is fresh.",
                 },
                 {
                   step: "02",
-                  title: "Smart routing protects you",
-                  desc: "Happy customers (4–5 stars) go straight to Google. Unhappy ones send private feedback only.",
+                  title: "Happy customers (4–5★) go to Google",
+                  desc: "Satisfied customers get a direct path to your Google review page in seconds.",
                 },
                 {
                   step: "03",
-                  title: "Grow ranking & marketing",
-                  desc: "More 5-star reviews improve your Maps position. Turn top reviews into ready-to-post graphics.",
+                  title: "Unhappy customers (1–3★) leave private feedback only",
+                  desc: "You get the chance to make things right before frustration becomes a public review.",
                 },
               ].map((item) => (
                 <div key={item.step}>
@@ -190,42 +146,34 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features */}
-        <section id="features" className="border-t border-[#2f3336]">
+        {/* Benefits */}
+        <section id="benefits" className="border-t border-[#2f3336]">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
             <div className="max-w-xl mb-14">
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#e7e9ea]">
-                Everything you need. Nothing you don’t.
+                A better review workflow, built for busy teams
               </h2>
               <p className="mt-3 text-[17px] text-[#71767b]">
-                Focused tools built for independent local service businesses.
+                Spend less time chasing reviews and more time running your business.
               </p>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               {[
                 {
-                  title: "Smart Review Link & QR",
-                  desc: "One link that routes happy customers to Google and keeps negative feedback private.",
+                  title: "More 5-star Google reviews",
+                  desc: "Give happy customers the shortest path to sharing a great experience on Google.",
                 },
                 {
-                  title: "Private Feedback Inbox",
-                  desc: "See low-star feedback first so you can resolve issues before they become public.",
+                  title: "Protect your public rating",
+                  desc: "Angry customers get a private feedback path so you can resolve issues before they go public.",
                 },
                 {
-                  title: "AI Reply Suggestions",
-                  desc: "Generate professional, personalized responses to reviews in seconds. Edit and post.",
+                  title: "AI reply suggestions",
+                  desc: "Generate thoughtful, professional responses to reviews in seconds, then edit and post.",
                 },
                 {
-                  title: "Social Proof Graphics",
-                  desc: "Turn any 5-star review into a clean Instagram or Facebook image ready to download.",
-                },
-                {
-                  title: "Simple Dashboard",
-                  desc: "Track requests, private feedback, and growth at a glance. No complicated reports.",
-                },
-                {
-                  title: "Mobile-Friendly",
-                  desc: "Works perfectly on phone so you can manage reputation between jobs.",
+                  title: "WhatsApp sharing",
+                  desc: "Send your smart link after every job with a ready-to-use WhatsApp message.",
                 },
               ].map((item) => (
                 <div
@@ -252,31 +200,55 @@ export default function Home() {
                 Simple, transparent pricing
               </h2>
               <p className="mt-3 text-[17px] text-[#71767b]">
-                One plan. Built for single-location local businesses.
+                Start free, then keep the tools that help your rating grow.
               </p>
             </div>
-            <div className="max-w-sm">
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-[#2f3336] bg-[#16181c] p-6">
+                <p className="text-[13px] font-bold uppercase tracking-wider text-[#71767b]">
+                  Free trial
+                </p>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-[#e7e9ea]">14</span>
+                  <span className="text-[#71767b]">days</span>
+                </div>
+                <p className="mt-1 text-[13px] text-[#71767b]">Full access · No credit card required</p>
+                <ul className="mt-6 space-y-2.5">
+                  {[
+                    "Unlimited smart links and QR codes",
+                    "Private feedback inbox",
+                    "AI reply suggestions",
+                  ].map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5 text-[14px]">
+                      <span className="text-[#1d9bf0]">✓</span>
+                      <span className="text-[#e7e9ea]">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/signup" className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#1d9bf0] px-5 py-2.5 text-[15px] font-bold text-white transition hover:bg-[#1a8cd8]">
+                  Start free trial
+                </Link>
+              </div>
+              <div className="rounded-2xl border border-[#1d9bf0] bg-[#16181c] p-6">
                 <p className="text-[13px] font-bold text-[#1d9bf0] uppercase tracking-wider">
                   Professional
                 </p>
                 <div className="mt-3 flex items-baseline gap-1">
                   <span className="text-4xl font-extrabold text-[#e7e9ea]">
-                    $79
+                    $49
                   </span>
                   <span className="text-[#71767b]">/month</span>
                 </div>
                 <p className="mt-1 text-[13px] text-[#71767b]">
-                  Cancel anytime · 14-day free trial
+                  Cancel anytime · After your 14-day trial
                 </p>
                 <ul className="mt-6 space-y-2.5">
                   {[
-                    "Unlimited smart review links & QR codes",
+                    "Unlimited smart links and QR codes",
                     "Private feedback inbox",
-                    "AI review reply suggestions",
-                    "Social proof graphic generator",
-                    "Dashboard & basic analytics",
-                    "Email support",
+                    "AI reply suggestions",
+                    "Dashboard and basic analytics",
+                    "WhatsApp sharing",
                   ].map((feature) => (
                     <li
                       key={feature}
@@ -299,10 +271,7 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  href="/signup"
-                  className="mt-6 w-full inline-flex items-center justify-center rounded-full bg-[#1d9bf0] px-5 py-2.5 text-[15px] font-bold text-white hover:bg-[#1a8cd8] transition"
-                >
+                <Link href="/signup" className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#1d9bf0] px-5 py-2.5 text-[15px] font-bold text-white transition hover:bg-[#1a8cd8]">
                   Start free trial
                 </Link>
               </div>
@@ -315,17 +284,16 @@ export default function Home() {
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
             <div className="max-w-xl">
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#e7e9ea]">
-                Ready to grow your Google reviews?
+                Ready to protect your Google rating?
               </h2>
               <p className="mt-3 text-[17px] text-[#71767b]">
-                Join local businesses that use ReputationFlow to protect and grow
-                their online reputation.
+                Start building a stronger review engine after your very next job.
               </p>
               <Link
                 href="/signup"
                 className="mt-8 inline-flex items-center justify-center rounded-full bg-[#e7e9ea] px-6 py-3 text-[15px] font-bold text-black hover:bg-white transition"
               >
-                Start your free trial
+                Start free trial
               </Link>
             </div>
           </div>
@@ -342,16 +310,9 @@ export default function Home() {
               </div>
               <span className="font-bold text-[#e7e9ea]">ReputationFlow</span>
             </div>
-            <div className="flex items-center gap-6 text-[13px] text-[#71767b]">
-              <Link href="/privacy" className="hover:text-[#e7e9ea] transition">
-                Privacy
-              </Link>
-              <Link href="/terms" className="hover:text-[#e7e9ea] transition">
-                Terms
-              </Link>
-              <span>
-                © {new Date().getFullYear()} ReputationFlow
-              </span>
+            <div className="flex flex-wrap items-center gap-4 text-[13px] text-[#71767b]">
+              <span>Powered by ReputationFlow</span>
+              <span>© {new Date().getFullYear()} ReputationFlow</span>
             </div>
           </div>
         </div>
