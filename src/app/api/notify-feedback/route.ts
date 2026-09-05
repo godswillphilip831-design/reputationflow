@@ -42,14 +42,28 @@ export async function POST(request: Request) {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
   const { data: business, error: businessError } = await supabase
     .from("businesses")
-    .select("name, profiles!inner(email)")
+    .select("id, name, user_id")
     .eq("id", businessId)
     .single();
 
-  const ownerEmail = business?.profiles?.[0]?.email;
-  if (businessError || !ownerEmail) {
-    console.error("Feedback notification could not load business owner", businessError);
-    return Response.json({ success: false, error: "Could not find business owner" }, { status: 404 });
+  if (businessError || !business) {
+    console.error("Feedback notification could not load business", businessError);
+    return Response.json({ success: false, error: "Could not find business" }, { status: 404 });
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", business.user_id)
+    .maybeSingle();
+
+  const ownerEmail = profile?.email?.trim();
+  if (profileError || !ownerEmail) {
+    console.error("Feedback notification could not load business owner email", profileError);
+    return Response.json(
+      { success: false, error: "Business owner email is not configured" },
+      { status: 500 },
+    );
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
