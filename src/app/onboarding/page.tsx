@@ -51,8 +51,21 @@ export default function OnboardingPage() {
 
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        throw new Error(userError?.message || "Please log in before finishing setup.");
+      if (userError) {
+        throw new Error(`Unable to verify your session: ${userError.message}`);
+      }
+      if (!user) {
+        setSaveError("Please log in first");
+        router.push("/login");
+        return;
+      }
+
+      const { error: profileError } = await supabase.from("profiles").upsert(
+        { id: user.id, email: user.email },
+        { onConflict: "id" },
+      );
+      if (profileError) {
+        throw new Error(`Unable to save your profile: ${profileError.message}`);
       }
 
       const { error: insertError } = await supabase.from("businesses").insert({
@@ -62,7 +75,7 @@ export default function OnboardingPage() {
         google_review_url: googleUrl,
       });
       if (insertError) {
-        throw new Error(insertError.message);
+        throw new Error(`Unable to save your business: ${insertError.message}`);
       }
 
       localStorage.setItem(
