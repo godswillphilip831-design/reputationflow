@@ -1,0 +1,75 @@
+import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
+
+type FeedbackPayload = {
+  businessId?: unknown;
+  rating?: unknown;
+  message?: unknown;
+  customerName?: unknown;
+};
+
+export async function POST(request: Request) {
+  if (!process.env.RESEND_API_KEY) {
+    return Response.json({ success: true, skipped: true });
+  }
+
+  let payload: FeedbackPayload;
+  try {
+    payload = await request.json();
+  } catch {
+    console.error("Feedback notification received invalid JSON");
+    return Response.json({ success: false, error: "Invalid request body" }, { status: 400 });
+  }
+
+  const { businessId, rating, message, customerName } = payload;
+  if (
+    typeof businessId !== "string" ||
+    typeof rating !== "number" ||
+    typeof message !== "string" ||
+    typeof customerName !== "string"
+  ) {
+    console.error("Feedback notification received invalid fields");
+    return Response.json({ success: false, error: "Invalid request body" }, { status: 400 });
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.error("Feedback notification is missing Supabase server credentials");
+    return Response.json({ success: false, error: "Notification service unavailable" }, { status: 500 });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+  const { data: business, error: businessError } = await supabase
+    .from("businesses")
+    .select("name, profiles!inner(email)")
+    .eq("id", businessId)
+    .single();
+
+  const ownerEmail = business?.profiles?.[0]?.email;
+  if (businessError || !ownerEmail) {
+    console.error("Feedback notification could not load business owner", businessError);
+    return Response.json({ success: false, error: "Could not find business owner" }, { status: 404 });
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const { error: sendError } = await resend.emails.send({
+    from: "ReputationFlow <onboarding@resend.dev>",
+    to: ownerEmail,
+    subject: `New private feedback (${rating} stars) — ${business.name}`,
+    text: [
+      `Rating: ${rating}/5`,
+      `Customer name: ${customerName || "Not provided"}`,
+      `Message: ${message}`,
+      "",
+      "View it in your dashboard: https://reputationflow-zrpt.vercel.app/dashboard",
+    ].join("\n"),
+  });
+
+  if (sendError) {
+    console.error("Feedback notification email failed", sendError);
+    return Response.json({ success: false, error: "Could not send notification" }, { status: 502 });
+  }
+
+  return Response.json({ success: true });
+}

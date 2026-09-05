@@ -86,6 +86,19 @@ export default function ReviewFunnelPage() {
         setSubmitting(false);
         return;
       }
+
+      void fetch("/api/notify-feedback", {
+        body: JSON.stringify({
+          businessId: business.id,
+          rating: selectedRating,
+          message: message.trim(),
+          customerName: name.trim(),
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }).catch((notificationError) => {
+        console.error("Feedback notification request failed", notificationError);
+      });
     }
 
     setSubmitting(false);

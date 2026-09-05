@@ -61,6 +61,10 @@ create policy "Users can view own profile"
   on public.profiles for select
   using (auth.uid() = id);
 
+create policy "Users can insert own profile"
+  on public.profiles for insert
+  with check (auth.uid() = id);
+
 create policy "Users can update own profile"
   on public.profiles for update
   using (auth.uid() = id);
@@ -69,6 +73,10 @@ create policy "Users can update own profile"
 create policy "Users can view own businesses"
   on public.businesses for select
   using (auth.uid() = user_id);
+
+create policy "Public can view businesses for review funnel"
+  on public.businesses for select
+  using (true);
 
 create policy "Users can insert own businesses"
   on public.businesses for insert
