@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { generateReply } from "@/lib/ai-reply";
 import { supabase } from "@/lib/supabase";
 
@@ -16,6 +17,7 @@ const MOCK: FB[] = [
       ];
 
       export default function DashboardPage() {
+        const router = useRouter();
         const [biz, setBiz] = useState(DEFAULT);
           const [fb, setFb] = useState(MOCK);
             const [filter, setFilter] = useState<"all" | "open" | "done">("all");
@@ -31,7 +33,10 @@ const MOCK: FB[] = [
                                 async function loadDashboard() {
                                   try {
                                     const { data: { user }, error: userError } = await supabase.auth.getUser();
-                                    if (userError || !user) throw new Error(userError?.message || "Unable to find your account.");
+                                    if (userError || !user) {
+                                      router.replace("/login");
+                                      return;
+                                    }
 
                                     const { data: business, error: businessError } = await supabase
                                       .from("businesses")
@@ -73,7 +78,12 @@ const MOCK: FB[] = [
                                   }
                                 }
                                 loadDashboard();
-                                                                        }, []);
+                                                                        }, [router]);
+
+                                                                                                                async function handleLogout() {
+                                                                                                                  await supabase.auth.signOut();
+                                                                                                                  router.replace("/");
+                                                                                                                }
 
                                                                         const link = (typeof window !== "undefined" ? window.location.origin : "https://reputationflow-zrpt.vercel.app") + "/r/" + biz.slug;
 
@@ -99,7 +109,7 @@ const MOCK: FB[] = [
                                                                                                                                                                                         </svg>
                                                                                                                                                                                         <span>Settings</span>
                                                                                                                                                                                       </Link>
-                                                                                                                                                                                      <Link href="/">Log out</Link>
+                                                                                                                                                                                      <button onClick={handleLogout} type="button">Log out</button>
                                                                                                                                                                                                 </div>
                                                                                                                                                                                                         </div>
                                                                                                                                                                                                               </header>

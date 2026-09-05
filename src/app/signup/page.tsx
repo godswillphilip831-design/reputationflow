@@ -20,7 +20,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -30,8 +30,13 @@ export default function SignupPage() {
         return;
       }
 
+      if (!data.session) {
+        setSuccess("Account created. Check your email to confirm your account, then log in to continue.");
+        return;
+      }
+
       setSuccess("Account created. Let’s set up your business.");
-      setTimeout(() => router.push("/onboarding"), 800);
+      router.push("/onboarding");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create account right now.");
     } finally {

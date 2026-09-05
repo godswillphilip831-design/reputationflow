@@ -1,6 +1,24 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkSession() {
+      const { data } = await supabase.auth.getSession();
+      if (active) setAuthenticated(Boolean(data.session));
+    }
+
+    checkSession();
+    return () => { active = false; };
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-black text-[#e7e9ea]">
       {/* Navigation */}
@@ -28,10 +46,10 @@ export default function Home() {
             </nav>
             <div className="flex items-center gap-3">
               <Link
-                href="/login"
+                href={authenticated ? "/dashboard" : "/login"}
                 className="text-[15px] font-medium text-[#e7e9ea] hover:text-white transition px-3 py-1.5"
               >
-                Log in
+                {authenticated ? "Dashboard" : "Log in"}
               </Link>
               <Link
                 href="/signup"

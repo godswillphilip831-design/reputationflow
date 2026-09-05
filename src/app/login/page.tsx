@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -11,6 +11,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function redirectIfAuthenticated() {
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      if (!active || sessionError) return;
+      if (data.session) router.replace("/dashboard");
+    }
+
+    redirectIfAuthenticated();
+    return () => { active = false; };
+  }, [router]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,7 +37,9 @@ export default function LoginPage() {
       });
 
       if (signInError) {
-        setError(signInError.message);
+        setError(signInError.message === "Invalid login credentials"
+          ? "That email or password is incorrect. Please try again."
+          : signInError.message);
         return;
       }
 
