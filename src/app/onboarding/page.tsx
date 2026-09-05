@@ -60,12 +60,23 @@ export default function OnboardingPage() {
         return;
       }
 
-      const { error: profileError } = await supabase.from("profiles").upsert(
-        { id: user.id, email: user.email },
-        { onConflict: "id" },
-      );
-      if (profileError) {
-        throw new Error(`Unable to save your profile: ${profileError.message}`);
+      const { data: profile, error: profileLookupError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profileLookupError) {
+        throw new Error(`Unable to check your profile: ${profileLookupError.message}`);
+      }
+
+      if (!profile) {
+        const { error: profileUpsertError } = await supabase.from("profiles").upsert(
+          { id: user.id, email: user.email },
+          { onConflict: "id" },
+        );
+        if (profileUpsertError) {
+          throw new Error(`Unable to save your profile: ${profileUpsertError.message}`);
+        }
       }
 
       const { error: insertError } = await supabase.from("businesses").insert({
