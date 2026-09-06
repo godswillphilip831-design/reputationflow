@@ -1,19 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
-type FeedbackPayload = {
-  businessId?: unknown;
-  rating?: unknown;
-  message?: unknown;
-  customerName?: unknown;
-};
-
 export async function POST(request: Request) {
-  if (!process.env.RESEND_API_KEY) {
-    return Response.json({ success: true, skipped: true });
-  }
-
-  let payload: FeedbackPayload;
+  let payload: unknown;
   try {
     payload = await request.json();
   } catch {
@@ -21,15 +10,23 @@ export async function POST(request: Request) {
     return Response.json({ success: false, error: "Invalid request body" }, { status: 400 });
   }
 
-  const { businessId, rating, message, customerName } = payload;
+  const { businessId, rating, message, customerName } =
+    typeof payload === "object" && payload !== null
+      ? (payload as Record<string, unknown>)
+      : {};
   if (
     typeof businessId !== "string" ||
     typeof rating !== "number" ||
+    !Number.isFinite(rating) ||
     typeof message !== "string" ||
     typeof customerName !== "string"
   ) {
     console.error("Feedback notification received invalid fields");
     return Response.json({ success: false, error: "Invalid request body" }, { status: 400 });
+  }
+
+  if (!process.env.RESEND_API_KEY) {
+    return Response.json({ success: true, skipped: true });
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -48,7 +45,7 @@ export async function POST(request: Request) {
 
   if (businessError || !business) {
     console.error("Feedback notification could not load business", businessError);
-    return Response.json({ success: false, error: "Could not find business" }, { status: 404 });
+    return Response.json({ error: "Could not find business" }, { status: 404 });
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -60,10 +57,7 @@ export async function POST(request: Request) {
   const ownerEmail = profile?.email?.trim();
   if (profileError || !ownerEmail) {
     console.error("Feedback notification could not load business owner email", profileError);
-    return Response.json(
-      { success: false, error: "Business owner email is not configured" },
-      { status: 500 },
-    );
+    return Response.json({ error: "Could not find owner email" }, { status: 404 });
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -82,7 +76,7 @@ export async function POST(request: Request) {
 
   if (sendError) {
     console.error("Feedback notification email failed", sendError);
-    return Response.json({ success: false, error: "Could not send notification" }, { status: 502 });
+    return Response.json({ error: sendError.message }, { status: 502 });
   }
 
   return Response.json({ success: true });
