@@ -69,7 +69,11 @@ export default function ReviewFunnelPage() {
     setFeedbackError("");
     setSubmitting(true);
 
-    if (business.id !== null) {
+    if (!business?.id) {
+      setSubmitting(false);
+      setStep("thanks");
+      return;
+    } else {
       const { error } = await supabase.from("private_feedback").insert({
         business_id: business.id,
         rating: selectedRating,
@@ -100,23 +104,35 @@ export default function ReviewFunnelPage() {
     setStep("thanks");
   }
 
-  if (!loading && !business) {
+  if (loading) {
+    return (
+      <main className="flex min-h-screen flex-1 flex-col bg-black px-5 py-6 text-[#e7e9ea]">
+        <div className="mx-auto flex w-full max-w-xl flex-1 items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto mb-5 h-8 w-8 animate-spin rounded-full border-2 border-[#2f3336] border-t-[#1d9bf0]" />
+            <p className="text-sm text-[#8b949e]">Loading your review page...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!business) {
     return (
       <main className="flex min-h-screen flex-1 flex-col bg-black px-5 py-6 text-[#e7e9ea] sm:px-8 sm:py-10">
         <div className="mx-auto flex w-full max-w-xl flex-1 flex-col">
           <header className="border-b border-[#2f3336] pb-5">
-            <p className="text-sm font-semibold tracking-tight text-[#e7e9ea]">ReputationFlow</p>
+            <p className="text-sm font-semibold text-[#e7e9ea]">ReputationFlow</p>
           </header>
-          <section className="flex flex-1 items-center py-12 sm:py-20">
-            <div className="w-full rounded-2xl border border-[#2f3336] bg-[#16181c] p-8 text-center shadow-2xl shadow-black/40 sm:p-10">
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Business not found</h1>
-              <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-[#8b949e]">
+          <section className="flex flex-1 items-center py-12">
+            <div className="w-full rounded-2xl border border-[#2f3336] bg-[#16181c] p-8 text-center">
+              <h1 className="text-2xl font-bold">Business not found</h1>
+              <p className="mt-4 text-sm text-[#8b949e]">
                 This review link is no longer active or may have been entered incorrectly.
               </p>
-              {loadError && <p className="mt-4 text-xs text-[#71767b]">{loadError}</p>}
+              <a href="https://reputationflow-zrpt.vercel.app/" className="mt-6 inline-block text-sm text-[#1d9bf0]">Go to homepage</a>
             </div>
           </section>
-          <footer className="border-t border-[#2f3336] pt-5 text-center text-xs text-[#71767b]">Powered by ReputationFlow</footer>
         </div>
       </main>
     );
@@ -136,13 +152,6 @@ export default function ReviewFunnelPage() {
 
         <section className="flex flex-1 items-center py-12 sm:py-20">
           <div className="w-full rounded-2xl border border-[#2f3336] bg-[#16181c] p-6 shadow-2xl shadow-black/40 sm:p-10">
-            {loading && (
-              <div className="py-12 text-center">
-                <div className="mx-auto mb-5 h-8 w-8 animate-spin rounded-full border-2 border-[#2f3336] border-t-[#1d9bf0]" />
-                <p className="text-sm text-[#8b949e]">Loading your review page...</p>
-              </div>
-            )}
-
             {!loading && step === "rating" && (
               <div className="text-center">
                 <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#1d9bf0]/10 text-2xl text-[#1d9bf0]">
