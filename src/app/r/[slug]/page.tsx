@@ -4,21 +4,13 @@ import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const fallbackBusiness = {
-  id: null,
-  slug: "demo",
-  name: "Demo Plumbing Co.",
-  googleReviewUrl:
-    "https://www.google.com/search?q=Demo+Plumbing+Co.+reviews",
-};
-
 type Business = { id: string | null; slug: string; name: string; googleReviewUrl: string };
 
 type Step = "rating" | "redirecting" | "feedback" | "thanks";
 
 export default function ReviewFunnelPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [business, setBusiness] = useState<Business>(fallbackBusiness);
+  const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [step, setStep] = useState<Step>("rating");
@@ -39,7 +31,7 @@ export default function ReviewFunnelPage() {
 
       if (!active) return;
       if (error || !data) {
-        setLoadError("Showing the demo review experience.");
+        setLoadError("We couldn't find a business for this link.");
       } else {
         setBusiness({ id: data.id, slug: data.slug, name: data.name, googleReviewUrl: data.google_review_url });
       }
@@ -53,13 +45,16 @@ export default function ReviewFunnelPage() {
     if (step !== "redirecting") {
       return;
     }
+    if (!business) {
+      return;
+    }
 
     const redirectTimer = window.setTimeout(() => {
       window.location.assign(business.googleReviewUrl);
     }, 1200);
 
     return () => window.clearTimeout(redirectTimer);
-  }, [business.googleReviewUrl, step]);
+  }, [business, step]);
 
   function handleRating(rating: number) {
     setSelectedRating(rating);
@@ -74,7 +69,7 @@ export default function ReviewFunnelPage() {
     setFeedbackError("");
     setSubmitting(true);
 
-    if (business.id) {
+    if (business.id !== null) {
       const { error } = await supabase.from("private_feedback").insert({
         business_id: business.id,
         rating: selectedRating,
@@ -103,6 +98,28 @@ export default function ReviewFunnelPage() {
 
     setSubmitting(false);
     setStep("thanks");
+  }
+
+  if (!loading && !business) {
+    return (
+      <main className="flex min-h-screen flex-1 flex-col bg-black px-5 py-6 text-[#e7e9ea] sm:px-8 sm:py-10">
+        <div className="mx-auto flex w-full max-w-xl flex-1 flex-col">
+          <header className="border-b border-[#2f3336] pb-5">
+            <p className="text-sm font-semibold tracking-tight text-[#e7e9ea]">ReputationFlow</p>
+          </header>
+          <section className="flex flex-1 items-center py-12 sm:py-20">
+            <div className="w-full rounded-2xl border border-[#2f3336] bg-[#16181c] p-8 text-center shadow-2xl shadow-black/40 sm:p-10">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Business not found</h1>
+              <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-[#8b949e]">
+                This review link is no longer active or may have been entered incorrectly.
+              </p>
+              {loadError && <p className="mt-4 text-xs text-[#71767b]">{loadError}</p>}
+            </div>
+          </section>
+          <footer className="border-t border-[#2f3336] pt-5 text-center text-xs text-[#71767b]">Powered by ReputationFlow</footer>
+        </div>
+      </main>
+    );
   }
 
   return (
